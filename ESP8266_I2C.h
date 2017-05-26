@@ -28,7 +28,7 @@
 #include "osapi.h"
 #include "gpio.h"
 #include "os_type.h"
-#include "driver/i2c_master.h"
+#include "i2c_master.h"
 
 //CUSTOM VARIABLE STRUCTURES/////////////////////////////
 typedef enum
