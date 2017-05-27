@@ -71,6 +71,7 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_Init(uint8_t slave_address)
     
     //INITIALIZE ESP8266 SOFT I2C MASTER MODE
     //ALSO INIT THE I2C GPIO PINS
+    i2c_master_gpio_init();
     i2c_master_init();
     
     _esp8266_i2c_state = ESP8266_I2C_STATE_OK;
@@ -300,4 +301,28 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_ReadByteMultiple(uint8_t read_reg, uint8_t* b
     i2c_master_stop();
     
     _esp8266_i2c_state = ESP8266_I2C_STATE_OK;
+}
+
+void ICACHE_FLASH_ATTR ESP8266_I2C_SendStart(void)
+{
+	//SEND I2C START ON I2C BUS
+
+	i2c_master_start();
+}
+
+void ICACHE_FLASH_ATTR ESP8266_I2C_SendStop(void)
+{
+	//WRITE I2C STOP ON I2C BUS
+
+	i2c_master_stop();
+}
+
+uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_SendByte(uint8_t val)
+{
+	//PUT SPECIFIED BYTE ON I2C BUS AND RETURN ACK/NACK
+	//TRUE (1) : ACK RECEIVED
+	//FALSE (0) : NACK RECEIVED
+
+	i2c_master_writeByte(val);
+	return i2c_master_checkAck();
 }
