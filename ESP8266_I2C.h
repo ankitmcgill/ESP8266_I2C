@@ -41,7 +41,7 @@ typedef enum
 //FUNCTION PROTOTYPES/////////////////////////////////////
 //CONFIGURATION FUNCTIONS
 void ICACHE_FLASH_ATTR ESP8266_I2C_SetDebug(uint8_t debug_on);
-void ICACHE_FLASH_ATTR ESP8266_I2C_Init(uint8_t slave_address);
+ESP8266_I2C_STATE ICACHE_FLASH_ATTR ESP8266_I2C_Init(uint8_t slave_address);
 
 //GET PARAMETER FUNCTIONS
 uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_GetSlaveAddress(void);
@@ -52,5 +52,10 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByte(uint8_t write_reg, uint8_t byte);
 void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByteMultiple(uint8_t write_reg, uint8_t* buf, uint8_t len);
 uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_ReadByte(uint8_t read_reg);
 void ICACHE_FLASH_ATTR ESP8266_I2C_ReadByteMultiple(uint8_t read_reg, uint8_t* buf, uint8_t len);
+
+//I2C ATOMIC CONTROL FUNCTIONS
+void ICACHE_FLASH_ATTR ESP8266_I2C_SendStart(void);
+void ICACHE_FLASH_ATTR ESP8266_I2C_SendStop(void);
+uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_SendByte(uint8_t val);
 //END FUNCTION PROTOTYPES/////////////////////////////////
 #endif
