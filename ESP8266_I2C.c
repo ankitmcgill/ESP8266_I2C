@@ -5,8 +5,8 @@
 * (ESP8266 DOES NOT HAVE HARDWARE I2C. ESPRESSIF MASTER I2C DRIVER
 * IS SOFTWARE BITBANGING OF I2C PROTOCOL)
 *
-* THE I2C ADDRESS IS THE UPPER MOST SIGNIFICANT 7 BITS (WITHOUT THE R/W)
-* BIT ADJUSTED AS A 8 BIT VALUE
+* THE I2C ADDRESS IS THE UPPER MOST SIGNIFICANT 7 BITS SHIFTED RIGHT
+* 1 PLACE
 *
 * MAY 25 2017
 *
@@ -43,31 +43,12 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_SetDebug(uint8_t debug_on)
     _esp8266_i2c_debug = debug_on;
 }
 
-void ICACHE_FLASH_ATTR ESP8266_I2C_Init(uint8_t slave_address)
+void ICACHE_FLASH_ATTR ESP8266_I2C_Init(void)
 {
     //SET THE I2C DEVICE ADDRESS
     //THIS IS THE UPPER 7 BITS OF THE 8 BIT I2C ADDRESS
     //FOR READ  (BIT 0) = 1
     //FOR WRITE (BIT 0) = 0
-
-    if(&slave_address == NULL || slave_address == 0)
-    {
-        //INVALID I2C ADDRESS
-        if(_esp8266_i2c_debug)
-        {
-            os_printf("ESP8266 : I2C : Invalid i2c slave address. TERMINATING\n");
-        }
-        _esp8266_i2c_state = ESP8266_I2C_STATE_ERROR;
-    }
-    else
-    {
-        //VALID I2C ADDRESS
-        if(_esp8266_i2c_debug)
-        {
-            os_printf("ESP8266 : I2C : i2c slave address set to 0x%x\n", slave_address);
-        }
-        _esp8266_i2c_slave_address = slave_address;
-    }
 
     //SET DEBUG = ON BY DEFAULT
     _esp8266_i2c_debug = 1;
@@ -80,14 +61,6 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_Init(uint8_t slave_address)
     _esp8266_i2c_state = ESP8266_I2C_STATE_OK;
 }
 
-uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_GetSlaveAddress(void)
-{
-    //RETURN THE SET I2C SLAVE ADDRESS
-    //RETURNS THE UPPER 7 BITS OF THE ADDRESS (WITHOUT R/W BIT 0)
-
-    return _esp8266_i2c_slave_address;
-}
-
 ESP8266_I2C_STATE ICACHE_FLASH_ATTR ESP8266_I2C_GetStatus(void)
 {
     //RETURN THE STATE VALUE OF THE ESP8266 I2C LIBRARY
@@ -95,7 +68,7 @@ ESP8266_I2C_STATE ICACHE_FLASH_ATTR ESP8266_I2C_GetStatus(void)
     return _esp8266_i2c_state;
 }
 
-void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByte(uint8_t write_reg, uint8_t byte)
+void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByte(uint8_t slave_address, uint8_t write_reg, uint8_t byte)
 {
     //WRITE 1 BYTE TO THE I2C SLAVE SPECIFIED WRITE REGISTER
     //I2C SEQUENCE:
@@ -108,8 +81,20 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByte(uint8_t write_reg, uint8_t byte)
     //  ACK (SLAVE)
     //  STOP (MASTER)
 
+    //CHECK FOR VALIDITY OF SLAVE ADDRESS
+    if(&slave_address == NULL || slave_address == 0)
+    {
+        //INVALID I2C ADDRESS
+        if(_esp8266_i2c_debug)
+        {
+            os_printf("ESP8266 : I2C : Invalid i2c slave address. TERMINATING\n");
+        }
+        _esp8266_i2c_state = ESP8266_I2C_STATE_ERROR;
+        return;
+    }
+
     i2c_master_start();
-    i2c_master_writeByte((_esp8266_i2c_slave_address << 1));
+    i2c_master_writeByte(ESP8266_I2C_SLAVE_ADDRESS_WRITE(slave_address));
     if(!i2c_master_checkAck())
     {
         //I2C DEVICE RESPONDED NACK
@@ -144,12 +129,24 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByte(uint8_t write_reg, uint8_t byte)
     _esp8266_i2c_state = ESP8266_I2C_STATE_OK;
 }
 
-void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByteMultiple(uint8_t write_reg, uint8_t* buf, uint8_t len)
+void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByteMultiple(uint8_t slave_address, uint8_t write_reg, uint8_t* buf, uint8_t len)
 {
     //WRITE MULTIPLE BYTES TO THE I2C SLAVE SPECIFIED WRITE REGISTER
 
+    //CHECK FOR VALIDITY OF SLAVE ADDRESS
+    if(&slave_address == NULL || slave_address == 0)
+    {
+        //INVALID I2C ADDRESS
+        if(_esp8266_i2c_debug)
+        {
+            os_printf("ESP8266 : I2C : Invalid i2c slave address. TERMINATING\n");
+        }
+        _esp8266_i2c_state = ESP8266_I2C_STATE_ERROR;
+        return;
+    }
+
     i2c_master_start();
-    i2c_master_writeByte((_esp8266_i2c_slave_address << 1));
+    i2c_master_writeByte(ESP8266_I2C_SLAVE_ADDRESS_WRITE(slave_address));
     if(!i2c_master_checkAck())
     {
         //I2C DEVICE RESPONDED NACK
@@ -193,12 +190,24 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByteMultiple(uint8_t write_reg, uint8_t*
     _esp8266_i2c_state = ESP8266_I2C_STATE_OK;
 }
 
-uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_ReadByte(uint8_t read_reg)
+uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_ReadByte(uint8_t slave_address, uint8_t read_reg)
 {
     //READ 1 BYTE FROM THE SPECIFIED REGISTER ADDRESS OF THE I2C SLAVE
 
+    //CHECK FOR VALIDITY OF SLAVE ADDRESS
+    if(&slave_address == NULL || slave_address == 0)
+    {
+        //INVALID I2C ADDRESS
+        if(_esp8266_i2c_debug)
+        {
+            os_printf("ESP8266 : I2C : Invalid i2c slave address. TERMINATING\n");
+        }
+        _esp8266_i2c_state = ESP8266_I2C_STATE_ERROR;
+        return;
+    }
+
     i2c_master_start();
-    i2c_master_writeByte((_esp8266_i2c_slave_address << 1));
+    i2c_master_writeByte(ESP8266_I2C_SLAVE_ADDRESS_WRITE(slave_address));
     if(!i2c_master_checkAck())
     {
         //I2C DEVICE RESPONDED NACK
@@ -219,7 +228,7 @@ uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_ReadByte(uint8_t read_reg)
         }
     }
     i2c_master_start();
-    i2c_master_writeByte((_esp8266_i2c_slave_address << 1)+ 1);
+    i2c_master_writeByte(ESP8266_I2C_SLAVE_ADDRESS_READ(slave_address));
     if(!i2c_master_checkAck())
     {
         //I2C DEVICE RESPONDED NACK
@@ -238,7 +247,7 @@ uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_ReadByte(uint8_t read_reg)
     return data;
 }
 
-void ICACHE_FLASH_ATTR ESP8266_I2C_ReadByteMultiple(uint8_t read_reg, uint8_t* buf, uint8_t len)
+void ICACHE_FLASH_ATTR ESP8266_I2C_ReadByteMultiple(uint8_t slave_address, uint8_t read_reg, uint8_t* buf, uint8_t len)
 {
     //READ THE SPECIFIED NUMBER OF BYTES FROM I2C SLAVE SPECIFIED READ REGISTER
     //I2C SEQUENCE:
@@ -254,8 +263,19 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_ReadByteMultiple(uint8_t read_reg, uint8_t* b
     //  NACK (MASTER)
     //  STOP (MASTER)
 
+    if(&slave_address == NULL || slave_address == 0)
+    {
+        //INVALID I2C ADDRESS
+        if(_esp8266_i2c_debug)
+        {
+            os_printf("ESP8266 : I2C : Invalid i2c slave address. TERMINATING\n");
+        }
+        _esp8266_i2c_state = ESP8266_I2C_STATE_ERROR;
+        return;
+    }
+
     i2c_master_start();
-    i2c_master_writeByte((_esp8266_i2c_slave_address << 1));
+    i2c_master_writeByte(ESP8266_I2C_SLAVE_ADDRESS_WRITE(slave_address));
     if(!i2c_master_checkAck())
     {
         //I2C DEVICE RESPONDED NACK
@@ -276,7 +296,7 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_ReadByteMultiple(uint8_t read_reg, uint8_t* b
         }
     }
     i2c_master_start();
-    i2c_master_writeByte((_esp8266_i2c_slave_address << 1)+ 1);
+    i2c_master_writeByte(ESP8266_I2C_SLAVE_ADDRESS_READ(slave_address));
     if(!i2c_master_checkAck())
     {
         //I2C DEVICE RESPONDED NACK
