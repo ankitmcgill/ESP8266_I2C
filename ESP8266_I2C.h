@@ -54,10 +54,10 @@ void ICACHE_FLASH_ATTR ESP8266_I2C_Init(void);
 ESP8266_I2C_STATE ICACHE_FLASH_ATTR ESP8266_I2C_GetStatus(void);
 
 //CONTROL FUNCTIONS
-void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByte(uint8_t slave_address, uint8_t write_reg, uint8_t byte);
-void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByteMultiple(uint8_t slave_address, uint8_t write_reg, uint8_t* buf, uint8_t len);
-uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_ReadByte(uint8_t slave_address, uint8_t read_reg);
-void ICACHE_FLASH_ATTR ESP8266_I2C_ReadByteMultiple(uint8_t slave_address, uint8_t read_reg, uint8_t* buf, uint8_t len);
+void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByte(uint8_t slave_address, uint32_t write_reg_add, uint8_t write_reg_add_len, uint8_t byte);
+void ICACHE_FLASH_ATTR ESP8266_I2C_WriteByteMultiple(uint8_t slave_address, uint32_t write_reg_add, uint8_t write_reg_add_len, uint8_t* buf, uint8_t len);
+uint8_t ICACHE_FLASH_ATTR ESP8266_I2C_ReadByte(uint8_t slave_address, uint32_t read_reg_add, uint8_t read_reg_add_len);
+void ICACHE_FLASH_ATTR ESP8266_I2C_ReadByteMultiple(uint8_t slave_address, uint32_t read_reg_add, uint8_t read_reg_add_len, uint8_t* buf, uint8_t len);
 
 //I2C ATOMIC CONTROL FUNCTIONS
 void ICACHE_FLASH_ATTR ESP8266_I2C_SendStart(void);
